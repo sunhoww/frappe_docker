@@ -3,6 +3,11 @@
 # Environment Variables
 .env
 
+# Custom builds
+build/custom-worker/Dockerfile
+build/custom-nginx/Dockerfile
+installation/docker-compose-custom.yml
+
 # mounted volume
 sites
 
