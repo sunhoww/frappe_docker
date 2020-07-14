@@ -1,0 +1,76 @@
+#!/bin/bash
+set -euo pipefail
+
+if [[ -e .env ]]; then
+    source .env
+fi
+
+cwd="$(pwd)"
+
+COMMAND=$1
+shift
+
+build() {
+    cd "$cwd/build/custom-worker"
+    docker build -t "${PROJECT_NAME}-worker" . $@
+    cd "$cwd/build/custom-nginx"
+    docker build -t "${PROJECT_NAME}-assets" . $@
+}
+
+deploy() {
+    docker-compose --project-name $PROJECT_NAME \
+        -f installation/docker-compose-common.yml \
+        -f installation/docker-compose-custom.yml \
+        -f installation/docker-compose-networks.yml \
+        $@
+}
+
+migrate() {
+    project_sites_vol="${PROJECT_NAME}_sites-vol"
+    project_network="${PROJECT_NAME}_default"
+    image_name="${PROJECT_NAME}-worker"
+    docker run --rm \
+        -e "MAINTENANCE_MODE=1" \
+        -v $project_sites_vol:/home/frappe/frappe-bench/sites \
+        --network $project_network \
+        $image_name migrate
+}
+
+backup() {
+    if [[ -e .env.backup ]]; then
+        source .env.backup
+    fi
+    project_sites_vol="${PROJECT_NAME}_sites-vol"
+    project_network="${PROJECT_NAME}_default"
+    image_name="${PROJECT_NAME}-worker"
+    docker run --rm \
+        -e "SITES=$SITES" \
+        -e "WITH_FILES=1" \
+        -v $project_sites_vol:/home/frappe/frappe-bench/sites \
+        --network $project_network \
+        $image_name backup
+    docker run --rm \
+        -e "BUCKET_NAME=$BUCKET_NAME" \
+        -e "REGION=$REGION" \
+        -e "ACCESS_KEY_ID=$ACCESS_KEY_ID" \
+        -e "SECRET_ACCESS_KEY=$SECRET_ACCESS_KEY" \
+        -e "ENDPOINT_URL=$ENDPOINT_URL" \
+        -e "BUCKET_DIR=$BUCKET_DIR" \
+        -e "BACKUP_LIMIT=$BACKUP_LIMIT" \
+        -v $project_sites_vol:/home/frappe/frappe-bench/sites \
+        --network $project_network \
+        $image_name push-backup
+}
+
+case "$COMMAND" in
+    build|deploy)
+        $COMMAND $@
+        ;;
+    migrate|backup)
+        $COMMAND
+        ;;
+    *)
+        echo "Unknown command"
+        echo "build | deploy | migrate | backup"
+        ;;
+esac
