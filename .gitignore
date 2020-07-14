@@ -2,6 +2,8 @@
 
 # Environment Variables
 .env
+.env.backup
+.env.deploy
 
 # Custom builds
 build/custom-worker/Dockerfile
