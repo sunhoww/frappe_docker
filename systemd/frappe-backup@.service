@@ -1,0 +1,9 @@
+[Unit]
+Description=frappe-backup service for %i
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/path/to/folder/containing/projects/%i
+ExecStart/path/to/folder/containing/projects/%i/deploy-helper backup

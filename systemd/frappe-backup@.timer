@@ -1,0 +1,10 @@
+[Unit]
+Description=Run frappe-backup for every 8 hours.
+
+[Timer]
+OnCalendar=Mon..Fri 2,12,18:30
+OnCalendar=Sat,Sun 6,18:30
+RandomizedDelaySec=900
+
+[Install]
+WantedBy=multi-user.target
