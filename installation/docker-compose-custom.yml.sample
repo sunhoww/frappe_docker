@@ -4,7 +4,7 @@ services:
   [app]-assets:
     image: [app]-assets
     build:
-      context: ../build/[app]-nginx
+      context: ../build/custom-nginx
     restart: on-failure
     environment:
       - FRAPPE_PY=[app]-python
@@ -36,7 +36,7 @@ services:
   [app]-python:
     image: [app]-worker
     build:
-      context: ../build/[app]-worker
+      context: ../build/custom-worker
     restart: on-failure
     environment:
       - MARIADB_HOST=${MARIADB_HOST}
