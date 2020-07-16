@@ -3,4 +3,5 @@ FROM frappe/erpnext-worker:v12.10.0
 RUN install_app [app] [repo]
 
 # Google Cloud Storage interoperablity
-RUN sed -i "s/list_objects_v2/list_objects/" /home/frappe/frappe-bench/commands/push_backup.py
+RUN sed -i "s/conn.upload_file(filename, bucket, destpath)/conn.upload_file(filename, bucket, destpath, Config=boto3.s3.transfer.TransferConfig(multipart_threshold=5 * 1024 ** ))/" /home/frappe/frappe-bench/commands/push_backup.py; \
+    sed -i "s/list_objects_v2/list_objects/" /home/frappe/frappe-bench/commands/push_backup.py
