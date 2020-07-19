@@ -62,8 +62,37 @@ backup() {
         $image_name push-backup
 }
 
+restore() {
+    if [[ -e .env.backup ]]; then
+        source .env.backup
+    fi
+    project_sites_vol="${PROJECT_NAME}_sites-vol"
+    project_network="${PROJECT_NAME}_default"
+    image_name="${PROJECT_NAME}-worker"
+    if [[ -e $1 ]]; then
+        docker run --rm \
+            -e "MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD" \
+            -v $project_sites_vol:/home/frappe/frappe-bench/sites \
+            -v $1:/home/frappe/backups \
+            --network $project_network \
+            $image_name restore-backup
+    else
+        docker run --rm \
+            -e "MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD" \
+            -e "BUCKET_NAME=$BUCKET_NAME" \
+            -e "REGION=$REGION" \
+            -e "ACCESS_KEY_ID=$ACCESS_KEY_ID" \
+            -e "SECRET_ACCESS_KEY=$SECRET_ACCESS_KEY" \
+            -e "ENDPOINT_URL=$ENDPOINT_URL" \
+            -e "BUCKET_DIR=$BUCKET_DIR" \
+            -v $project_sites_vol:/home/frappe/frappe-bench/sites \
+            --network $project_network \
+            $image_name restore-backup
+    fi
+}
+
 case "$COMMAND" in
-    build|deploy)
+    build|deploy|restore)
         $COMMAND $@
         ;;
     migrate|backup)
@@ -71,6 +100,6 @@ case "$COMMAND" in
         ;;
     *)
         echo "Unknown command"
-        echo "build | deploy | migrate | backup"
+        echo "build | deploy | migrate | backup | restore"
         ;;
 esac
