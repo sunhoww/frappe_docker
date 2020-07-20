@@ -44,9 +44,8 @@ backup() {
     project_network="${PROJECT_NAME}_default"
     image_name="${PROJECT_NAME}-worker"
     docker run --rm \
-        -e "SITES=$SITES" \
+        -e "SITES=$BACKUP_SITES" \
         -e "WITH_FILES=1" \
-        -v $BACKUP_DIR:/home/frappe/backups \
         -v $project_sites_vol:/home/frappe/frappe-bench/sites \
         --network $project_network \
         $image_name backup
