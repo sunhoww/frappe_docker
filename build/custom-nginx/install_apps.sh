@@ -1,6 +1,15 @@
 #!/bin/bash
 
-cd /home/frappe/frappe-bench/apps/frappe
+frappe_dir="/home/frappe/frappe-bench/apps/frappe"
+
+for app in /home/frappe/frappe-bench/apps/*; do
+    if [[ "$app" != "$frappe_dir" ]] && [[ -f "$app/package.json" ]]; then
+        cd $app
+        npm install
+    fi
+done
+
+cd "$frappe_dir"
 yarn
 yarn production
 rm -fr node_modules
