@@ -71,6 +71,10 @@ fi
 # Allow user process to create files in logs directory
 chown -R frappe:frappe /home/frappe/frappe-bench/logs
 
+# symlink node_modules
+ln -sfn /home/frappe/frappe-bench/sites/assets/frappe/node_modules \
+  /home/frappe/frappe-bench/apps/frappe/node_modules
+
 if [ "$1" = 'start' ]; then
   configureEnv
   checkConnection
@@ -195,6 +199,13 @@ elif [ "$1" = 'restore-backup' ]; then
 
   su frappe -c ". /home/frappe/frappe-bench/env/bin/activate \
     && python /home/frappe/frappe-bench/commands/restore_backup.py"
+  exit
+
+elif [ "$1" = 'bench' ]; then
+
+  exec su frappe -c '/home/frappe/frappe-bench/env/bin/python \
+    /home/frappe/frappe-bench/apps/frappe/frappe/utils/bench_helper.py \
+    frappe "$@"'
   exit
 
 else

@@ -20,3 +20,6 @@ deploy_key.pub
 
 # Pycharm
 .idea
+
+# VS Code devcontainer
+.devcontainer
