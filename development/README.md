@@ -75,6 +75,8 @@ bench set-redis-socketio-host redis-socketio:6379
 
 ### Edit Honcho's Procfile
 
+Note : With the option '--skip-redis-config-generation' during bench init, these actions are no more needed. But at least, take a look to ProcFile to see what going on when bench launch honcho on start command
+
 Honcho is the tool used by Bench to manage all the processes Frappe requires. Usually, these all run in localhost, but in this case, we have external containers for Redis. For this reason, we have to stop Honcho from trying to start Redis processes.
 
 Open the Procfile file and remove the three lines containing the configuration from Redis, either by editing manually the file:
@@ -95,6 +97,7 @@ You can create a new site with the following command:
 ```shell
 bench new-site sitename --no-mariadb-socket
 ```
+sitename MUST end with .localhost for trying deployments locally.
 
 for example:
 
@@ -194,6 +197,8 @@ honcho start \
     worker_long \
     worker_default
 ```
+
+Alternatively you can use the VSCode launch configuration "Honcho SocketIO Watch Schedule Worker" which launches the same command as above.
 
 This command starts all processes with the exception of Redis (which is already running in separate container) and the `web` process. The latter can can finally be started from the debugger tab of VSCode by clicking on the "play" button.
 
