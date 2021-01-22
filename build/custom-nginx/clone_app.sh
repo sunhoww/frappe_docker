@@ -8,7 +8,7 @@ APP_BRANCH=${3}
 
 echo "${APP_NAME}" >> /home/frappe/frappe-bench/sites/apps.txt
 cd /home/frappe/frappe-bench/apps
-git clone --depth 1 ${APP_REPO} ${BRANCH}
+git clone --depth 1 ${APP_REPO} ${BRANCH} ${APP_NAME}
 
 mkdir -p /home/frappe/frappe-bench/sites/assets/${APP_NAME}
 cp -R /home/frappe/frappe-bench/apps/${APP_NAME}/${APP_NAME}/public/* /home/frappe/frappe-bench/sites/assets/${APP_NAME}
