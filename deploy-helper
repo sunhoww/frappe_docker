@@ -101,8 +101,19 @@ console() {
         $image_name console $@
 }
 
+bench() {
+    project_sites_vol="${PROJECT_NAME}_sites-vol"
+    project_network="${PROJECT_NAME}_default"
+    image_name="${PROJECT_NAME}-worker"
+    docker run --rm -it \
+        -v $project_sites_vol:/home/frappe/frappe-bench/sites \
+        --network $project_network \
+        --user frappe \
+        $image_name bench $@
+}
+
 case "$COMMAND" in
-    build|deploy|restore|backup|console)
+    build|deploy|restore|backup|console|bench)
         $COMMAND $@
         ;;
     migrate)
