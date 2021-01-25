@@ -1,4 +1,6 @@
-FROM frappe/erpnext-worker:v12.10.0
+ARG GIT_BRANCH=version-12
+ARG DOCKER_REGISTRY_PREFIX=frappe
+FROM ${DOCKER_REGISTRY_PREFIX}/erpnext-worker:${GIT_BRANCH}
 
 RUN install_app [app] [repo]
 
