@@ -1,20 +1,18 @@
 #!/bin/bash
 
-frappe_dir="/home/frappe/frappe-bench/apps/frappe"
+mkdir -p /home/frappe/frappe-bench/sites/assets
+mkdir -p /home/frappe/frappe-bench/apps
 
-for app in /home/frappe/frappe-bench/apps/*; do
-    if [[ "$app" != "$frappe_dir" ]] && [[ -f "$app/package.json" ]]; then
-        cd $app
-        npm install
-    fi
-done
+/get_app frappe https://github.com/frappe/frappe version-12
+/get_app erpnext https://github.com/frappe/erpnext version-12
+/redress
 
-cd "$frappe_dir"
+/get_app [app] [repo]
+
+cd /home/frappe/frappe-bench/apps/frappe
 yarn
 yarn production
 rm -fr node_modules
 yarn install --production=true
 
 chmod +x /rsync
-
-rm /home/frappe/frappe-bench/sites/apps.txt

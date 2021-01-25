@@ -1,23 +1,28 @@
-FROM bitnami/node:12-prod
+ARG GIT_BRANCH=version-12
+ARG NODE_IMAGE_TAG=12-buster-slim
+ARG DOCKER_REGISTRY_PREFIX=frappe
+FROM node:${NODE_IMAGE_TAG}
 
-RUN mkdir -p /home/frappe/frappe-bench/sites/assets; \
-    mkdir -p /home/frappe/frappe-bench/apps; \
-    install_packages git python2
-COPY ./clone_app.sh /clone_app
+RUN apt-get update -y && \
+    apt-get install build-essential git python2 -y && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY ./get_app.sh /get_app
+COPY ./redress.sh /redress
 COPY ./install_apps.sh /install_apps
+RUN chmod +x /get_app /redress /install_apps && \
+    /install_apps
 
-RUN /clone_app frappe https://github.com/frappe/frappe.git version-12
-RUN /clone_app [app] [repo]
-RUN /install_apps
-
-FROM frappe/erpnext-nginx:v12.10.0
+FROM ${DOCKER_REGISTRY_PREFIX}/frappe-nginx:${GIT_BRANCH}
 
 COPY --from=0 /home/frappe/frappe-bench/sites/ /var/www/html/
 COPY --from=0 /rsync /rsync
-RUN echo "rsync -a --delete /var/www/html/assets/erpnext /assets" >> /rsync
-RUN echo -n "\n[app]" >> /var/www/html/apps.txt
 
 VOLUME [ "/assets" ]
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]
+
+
+COPY ./nginx-default.conf.template /etc/nginx/conf.d/default.conf.template
