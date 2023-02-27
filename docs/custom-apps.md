@@ -111,3 +111,24 @@ x-customizable-image: &customizable_image
 The `pull_policy` above is optional and prevents `docker` to try to download the image when that one has been built locally.
 
 Make sure image name is correct to be pushed to registry. After the images are pushed, you can pull them to servers to be deployed. If the registry is private, additional auth is needed.
+
+### Patch upstream code
+
+Similar to `apps.json`, `patches.json` can be base64 encoded and passed in as build arg environment variable during build.
+
+```json
+[
+  {
+    "message": "Fix rounded_total ignored",
+    "pattern": "s/flt(ref_doc.grand_total)/flt(ref_doc.rounded_total or ref_doc.grand_total)/",
+    "app": "erpnext",
+    "filepath": "accounts/doctype/payment_request/payment_request.py"
+  }
+]
+```
+
+Note:
+
+- `message` is optional and just provided for reference.
+- `pattern` is the regex for the search and replace to be passed into _sed_.
+- `path` and `app` will be used to generate the filepath like `/home/frappe/frappe-bench/erpnext/erpnext/accounts/doctype/payment_request/payment_request.py`

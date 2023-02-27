@@ -93,10 +93,15 @@ RUN apt-get update \
     libbz2-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# apps.json includes
+# apps.json and patches.json includes
 ARG APPS_JSON_BASE64
-RUN if [ -n "${APPS_JSON_BASE64}" ]; then \
-    mkdir /opt/frappe && echo "${APPS_JSON_BASE64}" | base64 -d > /opt/frappe/apps.json; \
+ARG PATCHES_JSON_BASE64
+RUN mkdir /opt/frappe && \
+  if [ -n "${APPS_JSON_BASE64}" ]; then \
+    echo "${APPS_JSON_BASE64}" | base64 -d > /opt/frappe/apps.json; \
+  fi && \
+  if [ -n "${PATCHES_JSON_BASE64}" ]; then \
+    echo "${PATCHES_JSON_BASE64}" | base64 -d > /opt/frappe/patches.json; \
   fi
 
 USER frappe
@@ -113,9 +118,18 @@ RUN export APP_INSTALL_ARGS="" && \
     --no-procfile \
     --no-backups \
     --skip-redis-config-generation \
+    --skip-assets \
     --verbose \
     /home/frappe/frappe-bench && \
   cd /home/frappe/frappe-bench && \
+  if [ -n "${PATCHES_JSON_BASE64}" ]; then \
+    jq -c '.[]' /opt/frappe/patches.json | while read p; do \
+      filepath=/home/frappe/frappe-bench/apps/$(echo $p | jq -r '.app')/$(echo $p | jq -r '.app')/$(echo $p | jq -r '.path'); \
+      sed -i "$(echo $p | jq -r '.pattern')" $filepath; \
+      echo "Patched: $(echo $p | jq -r '.message')" ; \
+    done; \
+  fi && \ 
+  bench build --production && \
   echo "$(jq 'del(.db_host, .redis_cache, .redis_queue, .redis_socketio)' sites/common_site_config.json)" \
     > sites/common_site_config.json && \
   find apps -mindepth 1 -path "*/.git" | xargs rm -fr
