@@ -1,4 +1,4 @@
-FROM debian:bookworm-slim as bench
+FROM debian:bookworm-slim AS bench
 
 LABEL author=frappé
 
@@ -47,6 +47,7 @@ RUN apt-get update \
     libsasl2-dev \
     libtiff5-dev \
     libwebp-dev \
+    pkg-config \
     redis-tools \
     rlwrap \
     tk8.6-dev \
@@ -69,6 +70,7 @@ RUN apt-get update \
     xz-utils \
     tk-dev \
     liblzma-dev \
+    file \
     && rm -rf /var/lib/apt/lists/*
 
 RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen \
@@ -95,28 +97,25 @@ USER frappe
 WORKDIR /home/frappe
 
 # Install Python via pyenv
-ENV PYTHON_VERSION_V13=3.9.17
-ENV PYTHON_VERSION_DEVELOP=3.11.4
-ENV PYTHON_VERSION=3.10.12
-ENV PYENV_ROOT /home/frappe/.pyenv
-ENV PATH $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
+ENV PYTHON_VERSION_V14=3.10.13
+ENV PYTHON_VERSION=3.11.6
+ENV PYENV_ROOT=/home/frappe/.pyenv
+ENV PATH=$PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
 
 # From https://github.com/pyenv/pyenv#basic-github-checkout
 RUN git clone --depth 1 https://github.com/pyenv/pyenv.git .pyenv \
-    && pyenv install $PYTHON_VERSION_V13 \
-    && pyenv install $PYTHON_VERSION_DEVELOP \
+    && pyenv install $PYTHON_VERSION_V14 \
     && pyenv install $PYTHON_VERSION \
-    && PYENV_VERSION=$PYTHON_VERSION_V13 pip install --no-cache-dir virtualenv \
-    && PYENV_VERSION=$PYTHON_VERSION_DEVELOP pip install --no-cache-dir virtualenv \
+    && PYENV_VERSION=$PYTHON_VERSION_V14 pip install --no-cache-dir virtualenv \
     && PYENV_VERSION=$PYTHON_VERSION pip install --no-cache-dir virtualenv \
-    && pyenv global $PYTHON_VERSION $PYTHON_VERSION_v13 \
+    && pyenv global $PYTHON_VERSION $PYTHON_VERSION_v14 \
     && sed -Ei -e '/^([^#]|$)/ {a export PYENV_ROOT="/home/frappe/.pyenv" a export PATH="$PYENV_ROOT/bin:$PATH" a ' -e ':a' -e '$!{n;ba};}' ~/.profile \
     && echo 'eval "$(pyenv init --path)"' >>~/.profile \
     && echo 'eval "$(pyenv init -)"' >>~/.bashrc
 
 # Clone and install bench in the local user home directory
 # For development, bench source is located in ~/.bench
-ENV PATH /home/frappe/.local/bin:$PATH
+ENV PATH=/home/frappe/.local/bin:$PATH
 # Skip editable-bench warning
 # https://github.com/frappe/bench/commit/20560c97c4246b2480d7358c722bc9ad13606138
 RUN git clone ${GIT_REPO} --depth 1 -b ${GIT_BRANCH} .bench \
@@ -125,19 +124,15 @@ RUN git clone ${GIT_REPO} --depth 1 -b ${GIT_BRANCH} .bench \
     && echo "export BENCH_DEVELOPER=1" >>/home/frappe/.bashrc
 
 # Install Node via nvm
-ENV NODE_VERSION_13=14.21.3
-ENV NODE_VERSION_DEVELOP=18.12.0
-ENV NODE_VERSION=16.20.1
-ENV NVM_DIR /home/frappe/.nvm
-ENV PATH ${NVM_DIR}/versions/node/v${NODE_VERSION}/bin/:${PATH}
+ENV NODE_VERSION_14=16.20.2
+ENV NODE_VERSION=20.19.2
+ENV NVM_DIR=/home/frappe/.nvm
+ENV PATH=${NVM_DIR}/versions/node/v${NODE_VERSION}/bin/:${PATH}
 
-RUN wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash \
+RUN wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash \
     && . ${NVM_DIR}/nvm.sh \
-    && nvm install ${NODE_VERSION_13} \
-    && nvm use v${NODE_VERSION_13} \
-    && npm install -g yarn \
-    && nvm install ${NODE_VERSION_DEVELOP} \
-    && nvm use v${NODE_VERSION_DEVELOP} \
+    && nvm install ${NODE_VERSION_14} \
+    && nvm use v${NODE_VERSION_14} \
     && npm install -g yarn \
     && nvm install ${NODE_VERSION} \
     && nvm use v${NODE_VERSION} \
@@ -151,7 +146,7 @@ RUN wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | 
 
 EXPOSE 8000-8005 9000-9005 6787
 
-FROM bench as bench-test
+FROM bench AS bench-test
 
 # Print version and verify bashrc is properly sourced so that everything works
 # in the interactive shell and Dockerfile

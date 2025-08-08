@@ -2,7 +2,7 @@
 
 There are 3 images that you can find in `/images` directory:
 
-- `bench`. It is used for development. [Learn more how to start development](../development/README.md).
+- `bench`. It is used for development. [Learn more how to start development](development.md).
 - `production`.
   - Multi-purpose Python backend. Runs [Werkzeug server](https://werkzeug.palletsprojects.com/en/2.0.x/) with [gunicorn](https://gunicorn.org), queues (via `bench worker`), or schedule (via `bench schedule`).
   - Contains JS and CSS assets and routes incoming requests using [nginx](https://www.nginx.com).
@@ -30,7 +30,7 @@ All services are described in `compose.yaml`
 - `frontend`. [nginx](https://www.nginx.com) server that serves JS/CSS assets and routes incoming requests.
 - `proxy`. [Traefik](https://traefik.io/traefik/) proxy. It is here for complicated setups or HTTPS override (with `overrides/compose.https.yaml`).
 - `websocket`. Node server that runs [Socket.IO](https://socket.io).
-- `queue-short`, `queue-default`, `queue-long`. Python servers that run job queues using [rq](https://python-rq.org).
+- `queue-short`, `queue-long`. Python servers that run job queues using [rq](https://python-rq.org).
 - `scheduler`. Python server that runs tasks on schedule using [schedule](https://schedule.readthedocs.io/en/stable/).
 
 ## Overrides
